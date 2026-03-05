@@ -1,0 +1,5 @@
+{
+  "name": "HCI Study Chatbot",
+  "description": "A chatbot interface for an HCI master's dissertation studying user prosocial behaviors and politeness markers when interacting with LLMs.",
+  "requestFramePermissions": []
+}
