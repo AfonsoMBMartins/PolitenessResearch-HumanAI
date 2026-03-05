@@ -19,7 +19,7 @@ export async function sendMessageToOpenAI(messages: Message[], onChunk: (text: s
     }));
 
     const stream = await openai.chat.completions.create({
-        model: 'gpt-4.1-nano',
+        model: 'gpt-4o-mini',
         messages: formattedMessages,
         stream: true,
     });

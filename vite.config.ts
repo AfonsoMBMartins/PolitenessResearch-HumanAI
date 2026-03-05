@@ -9,8 +9,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.OPENAI_API_KEY': JSON.stringify(env.OPENAI_API_KEY),
-      'process.env.KV_REST_API_URL': JSON.stringify(env.KV_REST_API_URL || ''),
-      'process.env.KV_REST_API_TOKEN': JSON.stringify(env.KV_REST_API_TOKEN || ''),
+      'process.env.KV_REST_API_URL': JSON.stringify(env.KV_REST_API_URL || env.KV_URL || ''),
+      'process.env.KV_REST_API_TOKEN': JSON.stringify(env.KV_REST_API_TOKEN || env.KV_TOKEN || ''),
     },
     resolve: {
       alias: {
