@@ -41,8 +41,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { all, key } = req.query;
 
             if (all === 'true') {
-                const keys = await redis.keys('session:*');
-                return res.status(200).json(keys);
+                const sessionKeys = await redis.keys('session:*');
+                const metadataKeys = await redis.keys('metadata:*');
+                return res.status(200).json([...sessionKeys, ...metadataKeys]);
             }
 
             if (key) {
@@ -56,6 +57,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (!key) return res.status(400).json({ error: 'Missing key' });
 
             await redis.set(key, JSON.stringify(value));
+            return res.status(200).json({ success: true });
+        }
+
+        if (req.method === 'DELETE') {
+            const { key, all } = req.query;
+
+            if (all === 'true') {
+                const sessionKeys = await redis.keys('session:*');
+                const metadataKeys = await redis.keys('metadata:*');
+                const allKeys = [...sessionKeys, ...metadataKeys];
+                if (allKeys.length > 0) {
+                    await redis.del(...allKeys);
+                }
+                return res.status(200).json({ success: true, count: allKeys.length });
+            }
+
+            if (!key) return res.status(400).json({ error: 'Missing key' });
+
+            await redis.del(key as string);
             return res.status(200).json({ success: true });
         }
 

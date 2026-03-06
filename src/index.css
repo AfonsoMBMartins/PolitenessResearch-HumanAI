@@ -2,17 +2,24 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
   @apply antialiased text-gray-900 bg-gray-50;
 }
 
-/* Custom scrollbar for a cleaner look */
+/* Custom scrollbar for a cleaner look - only shown when scrolling */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+  }
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -20,9 +27,37 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  background: #d1d5db;
+  /* gray-300 */
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  background: #9ca3af;
+  /* gray-400 */
+}
+
+/* Smooth reveal for new message content and layout adjustments */
+.prose {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.prose p {
+  animation: fadeInText 0.4s ease-out forwards;
+}
+
+@keyframes fadeInText {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble {
+  transition: min-height 0.3s ease-out, width 0.3s ease-out;
 }

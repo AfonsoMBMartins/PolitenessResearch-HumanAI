@@ -12,24 +12,39 @@ const openai = new OpenAI({
     dangerouslyAllowBrowser: true
 });
 
-export async function sendMessageToOpenAI(messages: Message[], onChunk: (text: string) => void) {
+export async function sendMessageToOpenAI(
+    messages: Message[],
+    onChunk: (text: string) => void,
+    model: string = 'gpt-4o-mini',
+    temperature: number = 1.0,
+    signal?: AbortSignal
+) {
     const formattedMessages = messages.map(m => ({
         role: m.role as any,
         content: m.content
     }));
 
-    const stream = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: formattedMessages,
-        stream: true,
-    });
+    try {
+        const stream = await openai.chat.completions.create({
+            model: model,
+            messages: formattedMessages,
+            stream: true,
+            temperature: temperature,
+        }, { signal });
 
-    let fullResponse = '';
-    for await (const chunk of stream) {
-        const text = chunk.choices[0]?.delta?.content || '';
-        fullResponse += text;
-        onChunk(fullResponse);
+        let fullResponse = '';
+        for await (const chunk of stream) {
+            const text = chunk.choices[0]?.delta?.content || '';
+            fullResponse += text;
+            onChunk(fullResponse);
+        }
+
+        return fullResponse;
+    } catch (error: any) {
+        if (error.name === 'AbortError') {
+            console.log('[OpenAI] Request aborted by user');
+            return null;
+        }
+        throw error;
     }
-
-    return fullResponse;
 }
