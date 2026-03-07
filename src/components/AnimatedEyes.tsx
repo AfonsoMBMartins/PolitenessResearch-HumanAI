@@ -107,7 +107,7 @@ export function AnimatedEyes({ size = 'large', isFocused = false, isSurprised: e
         }}
         className={`
           ${isSmall ? 'w-1.5 h-2.5 rounded-[0.1rem]' : 'w-3.5 h-6 rounded-[0.25rem]'} 
-          bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.25)]
+          bg-[#61a0c2] shadow-[0_0_15px_rgba(79,70,229,0.25)]
         `}
       />
       {/* Right Eye */}
@@ -127,7 +127,7 @@ export function AnimatedEyes({ size = 'large', isFocused = false, isSurprised: e
         }}
         className={`
           ${isSmall ? 'w-1.5 h-2.5 rounded-[0.1rem]' : 'w-3.5 h-6 rounded-[0.25rem]'} 
-          bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.25)]
+          bg-[#61a0c2] shadow-[0_0_15px_rgba(79,70,229,0.25)]
         `}
       />
     </div>
