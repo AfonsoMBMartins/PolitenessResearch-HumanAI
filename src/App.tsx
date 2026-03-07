@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { Admin } from './pages/Admin';
 import { Chat } from './pages/Chat';
 import { Transcript } from './pages/Transcript';
@@ -13,6 +14,7 @@ export default function App() {
         <Route path="/transcript" element={<Transcript />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
+      <Analytics />
     </BrowserRouter>
   );
 }
