@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowUp, Loader2, ArrowLeft, Square, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SYSTEM_PROMPT as DEFAULT_PROMPT } from '../config/prompt';
-import { getSessionMessages, saveSessionMessages, getSystemPrompt, getSessionMetadata, saveSessionMetadata } from '../services/kv';
+import { getSessionMessages, saveSessionMessages, getSystemPrompt, getSessionMetadata, saveSessionMetadata, getInvitation } from '../services/kv';
 import { sendMessageToOpenAI } from '../services/openai';
 import { Message } from '../types';
 import ReactMarkdown from 'react-markdown';
@@ -13,10 +13,30 @@ import { AnimatedEyes } from '../components/AnimatedEyes';
 export function Chat() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const participant = searchParams.get('participant');
-    const scenario = searchParams.get('scenario');
-    const model = searchParams.get('model') || 'gpt-4o-mini';
-    const temperature = parseFloat(searchParams.get('temperature') || '1.0');
+    const [participant, setParticipant] = useState<string | null>(searchParams.get('participant'));
+    const [scenario, setScenario] = useState<string | null>(searchParams.get('scenario'));
+    const [model, setModel] = useState<string>(searchParams.get('model') || 'gpt-4o-mini');
+    const [temperature, setTemperature] = useState<number>(parseFloat(searchParams.get('temperature') || '1.0'));
+    const [isResolvingCode, setIsResolvingCode] = useState(!!searchParams.get('code'));
+    const [isParticipantMode, setIsParticipantMode] = useState(searchParams.get('mode') === 'participant');
+
+    useEffect(() => {
+        const code = searchParams.get('code');
+        if (code) {
+            getInvitation(code).then(config => {
+                if (config) {
+                    setParticipant(config.participant);
+                    setScenario(config.scenario);
+                    setModel(config.model || 'gpt-4o-mini');
+                    setTemperature(config.temperature || 1.0);
+                    if (config.mode === 'participant') setIsParticipantMode(true);
+                } else {
+                    console.error("Invalid or expired session code");
+                }
+                setIsResolvingCode(false);
+            });
+        }
+    }, [searchParams]);
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
@@ -30,7 +50,7 @@ export function Chat() {
     const abortControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
-        if (!participant || !scenario) return;
+        if (isResolvingCode || !participant || !scenario) return;
 
         const loadSession = async () => {
             setIsInitializing(true);
@@ -154,10 +174,24 @@ export function Chat() {
         );
     }
 
-    if (!participant || !scenario) {
+    if (!isResolvingCode && (!participant || !scenario)) {
         return (
-            <div className="flex items-center justify-center h-screen bg-gray-50 text-gray-500 font-sans">
-                Missing participant or scenario parameters in URL. Example: /chat?participant=P01&scenario=scenario_1
+            <div className="flex flex-col items-center justify-center h-screen bg-gray-50 text-gray-500 font-sans p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-2">
+                    <ArrowLeft className="w-8 h-8" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Session Not Found</h2>
+                <p className="max-w-xs text-sm">
+                    This link appears to be invalid or expired. Please contact your researcher for a new session link.
+                </p>
+                {!isParticipantMode && (
+                    <button 
+                        onClick={() => navigate('/admin')}
+                        className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition shadow-sm"
+                    >
+                        Return to Dashboard
+                    </button>
+                )}
             </div>
         );
     }
@@ -259,13 +293,17 @@ export function Chat() {
         <div className="flex flex-col h-screen bg-gray-50 text-gray-900 font-sans relative">
             {/* Minimal Header */}
             <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0 z-10">
-                <button
-                    onClick={() => navigate('/admin')}
-                    className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-black transition px-3 py-1.5 rounded-full hover:bg-gray-100"
-                >
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    Back to Dashboard
-                </button>
+                {!isParticipantMode ? (
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="flex items-center gap-2 text-xs font-medium text-gray-500 hover:text-black transition px-3 py-1.5 rounded-full hover:bg-gray-100"
+                    >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        Back to Dashboard
+                    </button>
+                ) : (
+                    <div className="w-32" />
+                )}
 
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-full">

@@ -122,3 +122,28 @@ export const saveSystemPrompt = async (prompt: string): Promise<boolean> => {
         return false;
     }
 };
+export const saveInvitation = async (id: string, config: any): Promise<boolean> => {
+    try {
+        const response = await fetch('/api/kv', {
+            method: 'POST',
+            body: JSON.stringify({ key: `link:${id}`, value: config }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        return data.success === true;
+    } catch (error) {
+        console.error("Error saving invitation:", error);
+        return false;
+    }
+};
+
+export const getInvitation = async (id: string): Promise<any> => {
+    try {
+        const response = await fetch(`/api/kv?key=link:${id}`);
+        const data = await response.json();
+        return (Array.isArray(data) && data.length === 0) ? null : data;
+    } catch (error) {
+        console.error("Error loading invitation:", error);
+        return null;
+    }
+};

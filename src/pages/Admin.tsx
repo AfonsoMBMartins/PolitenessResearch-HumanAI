@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllSessionKeys, getSessionMessages, deleteSession, getSystemPrompt, saveSystemPrompt, deleteAllSessions } from '../services/kv';
+import { getAllSessionKeys, getSessionMessages, deleteSession, getSystemPrompt, saveSystemPrompt, deleteAllSessions, saveInvitation } from '../services/kv';
 import { SYSTEM_PROMPT as DEFAULT_PROMPT } from '../config/prompt';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Trash2, Loader2, Link, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function Admin() {
     const [sessions, setSessions] = useState<string[]>([]);
-    const [participant, setParticipant] = useState('P01');
+    const [participant, setParticipant] = useState('Test');
     const [scenario, setScenario] = useState('');
     const [model, setModel] = useState('gpt-4o');
     const [temperature, setTemperature] = useState(1.0);
@@ -18,6 +19,7 @@ export function Admin() {
 
     const [selectedSessionLog, setSelectedSessionLog] = useState<{ id: string, log: string } | null>(null);
     const [isSessionLoading, setIsSessionLoading] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
     const navigate = useNavigate();
 
@@ -51,6 +53,31 @@ export function Admin() {
         e.preventDefault();
         if (!scenario.trim()) return;
         navigate(`/chat?participant=${participant}&scenario=${scenario}&model=${model}&temperature=${temperature}`);
+    };
+
+    const handleGetLink = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (!scenario.trim()) return;
+        
+        // Generate a random 6-character code
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const config = { 
+            participant, 
+            scenario, 
+            model, 
+            temperature, 
+            mode: 'participant' 
+        };
+        
+        const success = await saveInvitation(code, config);
+        if (success) {
+            const link = `${window.location.origin}/chat?code=${code}`;
+            navigator.clipboard.writeText(link);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } else {
+            alert("Failed to generate code link. Please try again.");
+        }
     };
 
     const viewSession = async (key: string) => {
@@ -145,7 +172,7 @@ export function Admin() {
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-8 font-sans">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Research Panel</h1>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Admin Console</h1>
                 <div className="flex gap-3">
                     <button
                         onClick={() => setIsPromptModalOpen(true)}
@@ -222,6 +249,7 @@ export function Admin() {
                             onChange={e => setParticipant(e.target.value)}
                             className="w-full sm:w-auto border border-gray-300 rounded-lg px-4 py-2.5 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         >
+                            <option value="Test">Test</option>
                             {Array.from({ length: 12 }, (_, i) => `P${String(i + 1).padStart(2, '0')}`).map(p => (
                                 <option key={p} value={p}>{p}</option>
                             ))}
@@ -266,9 +294,43 @@ export function Admin() {
                             className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                         />
                     </div>
-                    <button type="submit" className="w-full sm:w-auto bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition">
-                        Enter Session
-                    </button>
+                    <div className="flex w-full sm:w-auto gap-2 items-end">
+                        <div className="relative group flex-1 sm:flex-none">
+                            <AnimatePresence>
+                                {isCopied && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10, x: '-50%' }}
+                                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                                        exit={{ opacity: 0, y: 10, x: '-50%' }}
+                                        className="absolute -top-12 left-1/2 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none"
+                                    >
+                                        Copied to clipboard!
+                                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-gray-900" />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                            <button 
+                                type="button"
+                                onClick={handleGetLink}
+                                disabled={!scenario.trim()}
+                                title="Get Session Link"
+                                className={`w-full h-[46px] flex items-center justify-center border transition-all duration-300 px-4 rounded-lg font-medium shadow-sm ${
+                                    isCopied 
+                                    ? 'bg-emerald-50 border-emerald-500 text-emerald-600 scale-105' 
+                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 active:scale-95 disabled:opacity-30 disabled:grayscale'
+                                }`}
+                            >
+                                {isCopied ? (
+                                    <Check className="w-4 h-4" />
+                                ) : (
+                                    <Link className="w-4 h-4" />
+                                )}
+                            </button>
+                        </div>
+                        <button type="submit" className="flex-1 sm:flex-none h-[46px] bg-indigo-600 text-white px-6 rounded-lg font-medium hover:bg-indigo-700 transition shadow-sm active:scale-95">
+                            Enter Session
+                        </button>
+                    </div>
                 </form>
             </div>
 
