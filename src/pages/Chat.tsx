@@ -185,7 +185,7 @@ export function Chat() {
                     This link appears to be invalid or expired. Please contact your researcher for a new session link.
                 </p>
                 {!isParticipantMode && (
-                    <button 
+                    <button
                         onClick={() => navigate('/admin')}
                         className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition shadow-sm"
                     >
@@ -331,9 +331,9 @@ export function Chat() {
                                 <AnimatedEyes isFocused={isLoading} isSurprised={isFeedbackSurprised} />
                             </motion.div>
                             <div className="text-center space-y-2 max-w-sm">
-                                <h3 className="text-xl font-bold text-gray-900 tracking-tight">How can I help you today?</h3>
+                                <h3 className="text-xl font-bold text-gray-900 tracking-tight">Hello! How can I help you today?</h3>
                                 <p className="text-sm text-gray-500 font-medium">
-                                    I'm ready to assist with your research session. Just type a message below to begin our interaction.
+                                    Thank you for making part of this research! Is there anything I can help you with?
                                 </p>
                             </div>
                         </div>
